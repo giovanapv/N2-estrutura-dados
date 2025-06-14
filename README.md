@@ -1,7 +1,7 @@
 Simulação de sensores de uma planta industrial inteligente em linguagem C.  
 O projeto está dividido em 3 programas:
 
-- "primeiro.c": gGera um arquivo com leituras aleatórias para múltiplos sensores, de diferentes tipos (int, float, bool, string), dentro de um intervalo de tempo definido pelo usuário.Cada sensor recebe 2000 medições.
+- "primeiro.c": Gera um arquivo com leituras aleatórias para múltiplos sensores, de diferentes tipos (int, float, bool, string), dentro de um intervalo de tempo definido pelo usuário.Cada sensor recebe 2000 medições.
   
 - "segundo.c": Lê o arquivo bruto gerado no programa anterior, identifica os sensores, separa os dados por tipo e sensor, ordena as leituras por timestamp e salva tudo em arquivos separados.Esse processo garante que os dados estejam prontos para consultas rápidas e precisas.
   
