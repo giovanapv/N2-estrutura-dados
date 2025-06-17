@@ -1,0 +1,108 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <ctype.h>
+
+#define MAX_SENSORES 5
+#define LEITURAS_POR_SENSOR 2000
+#define TAM_ID 20
+#define TAM_TIPO 10
+#define TOTAL_LEITURAS (MAX_SENSORES * LEITURAS_POR_SENSOR)
+
+typedef struct {
+    long timestamp;
+    char sensor[TAM_ID];
+    char valor[64];
+} Leitura;
+
+int compararTimestampDecrescente(const void *a, const void *b) {
+    Leitura *la = (Leitura *)a;
+    Leitura *lb = (Leitura *)b;
+    return (lb->timestamp - la->timestamp);
+}
+
+int validarTipoDado(const char *tipo) {
+    return strcmp(tipo, "int") == 0 || strcmp(tipo, "float") == 0 ||
+           strcmp(tipo, "bool") == 0 || strcmp(tipo, "string") == 0;
+}
+
+long gerarTimestampAleatorio(time_t inicio, time_t fim) {
+    return inicio + rand() % (fim - inicio + 1);
+}
+
+void gerarValor(const char *tipo, char *saida) {
+    if (strcmp(tipo, "int") == 0) {
+        sprintf(saida, "%d", rand() % 100);
+    } else if (strcmp(tipo, "float") == 0) {
+        float valor = ((float)rand() / RAND_MAX) * 100.0f;
+        sprintf(saida, "%.2f", valor);
+    } else if (strcmp(tipo, "bool") == 0) {
+        strcpy(saida, rand() % 2 ? "true" : "false");
+    } else if (strcmp(tipo, "string") == 0) {
+        int len = 6 + rand() % 5;
+        for (int i = 0; i < len; i++) {
+            saida[i] = 'a' + rand() % 26;
+        }
+        saida[len] = '\0';
+    }
+}
+
+int main() {
+    srand(time(NULL));
+    char sensores[MAX_SENSORES][TAM_ID];
+    char tipos[MAX_SENSORES][TAM_TIPO];
+    int qtdSensores;
+
+    printf("Quantos sensores deseja simular (1 a %d)? ", MAX_SENSORES);
+    scanf("%d", &qtdSensores);
+    getchar(); // limpar buffer
+
+    for (int i = 0; i < qtdSensores; i++) {
+        printf("Nome do sensor %d: ", i + 1);
+        fgets(sensores[i], sizeof(sensores[i]), stdin);
+        sensores[i][strcspn(sensores[i], "\n")] = '\0';
+
+        while (1) {
+            printf("Tipo de dado (int, float, bool, string): ");
+            fgets(tipos[i], sizeof(tipos[i]), stdin);
+            tipos[i][strcspn(tipos[i], "\n")] = '\0';
+            if (validarTipoDado(tipos[i])) break;
+            printf("Tipo inválido. Tente novamente.\n");
+        }
+    }
+
+    time_t inicio = time(NULL) - 86400 * 5; 
+    time_t fim = time(NULL);
+
+    Leitura *leituras = malloc(sizeof(Leitura) * qtdSensores * LEITURAS_POR_SENSOR);
+    int total = 0;
+
+    for (int i = 0; i < qtdSensores; i++) {
+        for (int j = 0; j < LEITURAS_POR_SENSOR; j++) {
+            leituras[total].timestamp = gerarTimestampAleatorio(inicio, fim);
+            strcpy(leituras[total].sensor, sensores[i]);
+            gerarValor(tipos[i], leituras[total].valor);
+            total++;
+        }
+    }
+
+    // Ordenar os dados em ordem decrescente
+    qsort(leituras, total, sizeof(Leitura), compararTimestampDecrescente);
+
+    FILE *arquivo = fopen("Parte1DoTrabalho.txt", "w");
+    if (!arquivo) {
+        perror("Erro ao criar arquivo");
+        return 1;
+    }
+
+    for (int i = 0; i < total; i++) {
+        fprintf(arquivo, "%ld %s %s\n", leituras[i].timestamp, leituras[i].sensor, leituras[i].valor);
+    }
+
+    fclose(arquivo);
+    free(leituras);
+
+    printf("Arquivo 'Parte1DoTrabalho.txt' criado com dados em ordem decrescente.\n");
+    return 0;
+}
